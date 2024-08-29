@@ -8,9 +8,9 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
   let selectedNode = nodes.find((node) => node.selected);
 
   const updateNodes = useCallback((newNodes, newEdges) => {
-    setNodes(nds => newNodes)
-    setEdges(edg => newEdges)
-  })
+    setNodes((nds) => newNodes);
+    setEdges((edg) => newEdges);
+  });
 
   const onDragStart = (event, nodeType) => {
     setType(nodeType);
@@ -55,12 +55,8 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const content = event.target?.result;
-      try {
-        const {nodes, edges} = parseSQLToReactFlow(content);
-        updateNodes(nodes, edges)
-      } catch (error) {
-        console.error(error);
-      }
+      const { nodes, edges } = parseSQLToReactFlow(content);
+      updateNodes(nodes, edges);
     };
     reader.readAsText(file);
   };
@@ -208,7 +204,10 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
             id: `option-${matches[1]}`,
             type: "specOption",
             data: { value: matches[3], label: matches[3] },
-            position: { x: 400 * 4, y: Math.random() * 400 }, // ランダム位置
+            position: {
+              x: 400 * 4,
+              y: 100 * Number(matches[1].match(/\d+/)[0]),
+            }, // ランダム位置
           });
           edges.push({
             id: `e-option-${matches[1]}`,
@@ -232,6 +231,44 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
             target: `spec-${matches[1]}`,
           });
         }
+      }
+    });
+
+    // 縦軸の高さ計算
+    const specNodes = nodes.filter((node) => node.type === "spec");
+    specNodes.forEach((node) => {
+      const optionIDs = edges
+        .filter((edge) => edge.source === node.id)
+        .map((edge) => edge.target);
+      const optionPositions = optionIDs
+        .map((id) => nodes.find((node) => node.id === id))
+        .map((node) => node.position.y);
+      if (optionPositions.length > 0) {
+        node.position.y = Math.min(...optionPositions);
+      }
+    });
+    const groupNodes = nodes.filter((node) => node.type === "specGroup");
+    groupNodes.forEach((node) => {
+      const specIds = edges
+        .filter((edge) => edge.source === node.id)
+        .map((edge) => edge.target);
+      const specPositions = specIds
+        .map((id) => nodes.find((node) => node.id === id))
+        .map((node) => node.position.y);
+      if (specPositions.length > 0) {
+        node.position.y = Math.min(...specPositions);
+      }
+    });
+    const elementNodes = nodes.filter((node) => node.type === "element");
+    elementNodes.forEach((node) => {
+      const groupIds = edges
+        .filter((edge) => edge.source === node.id)
+        .map((edge) => edge.target);
+      const groupPositions = groupIds
+        .map((id) => nodes.find((node) => node.id === id))
+        .map((node) => node.position.y);
+      if (groupPositions.length > 0) {
+        node.position.y = Math.min(...groupPositions);
       }
     });
 
