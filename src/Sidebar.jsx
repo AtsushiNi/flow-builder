@@ -1,9 +1,12 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { useDnD } from "./DnDContext";
+import { Button, Upload } from "antd";
+import { DownloadOutlined, UploadOutlined } from "@ant-design/icons";
 
 const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
   const [_, setType] = useDnD();
   const anchorRef = useRef(null);
+  const [file, setFile] = useState(null);
 
   let selectedNode = nodes.find((node) => node.selected);
 
@@ -44,14 +47,11 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
     [selectedNode, setNodes]
   );
 
-  const handleFileChange = (e) => {
-    if (!e.target.files || e.target.files.length === 0) {
-      console.error("ファイルを選択して下さい");
-      return;
-    }
-
-    const file = e.target.files[0];
-
+  const handleBeforeUpload = file => {
+    setFile(file);
+    return false;
+  }
+  const handleFileChange = () => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const content = event.target?.result;
@@ -278,9 +278,13 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
   return (
     <aside>
       <div style={{ marginBottom: 10 }}>
-        <input type="file" accept=".sql" onChange={handleFileChange} />
+        {/* <Upload maxCount={1} onChange={handleFileChange}> */}
+        <Upload maxCount={1} onChange={handleFileChange} beforeUpload={handleBeforeUpload}>
+            <Button icon={<UploadOutlined />}>Upload Data</Button>
+        </Upload>
       </div>
-      <div
+      <Button icon={<DownloadOutlined/>}>Output Data</Button>
+      {/* <div
         className="dndnode element"
         onDragStart={(event) => onDragStart(event, "element")}
         draggable
@@ -307,7 +311,7 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
         draggable
       >
         SpecOption
-      </div>
+      </div> */}
       <div>
         {selectedNode ? (
           selectedNode.type === "specGroup" ? (
@@ -320,8 +324,8 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
         )}
       </div>
       <div>
-        <button onClick={onClickOutput}>出力</button>
-        <a ref={anchorRef}></a>
+        {/* <button onClick={onClickOutput}>出力</button> */}
+        {/* <a ref={anchorRef}></a> */}
       </div>
     </aside>
   );
