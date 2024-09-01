@@ -1,5 +1,5 @@
 import { Handle, Position } from "@xyflow/react";
-import { Form, Input, Popover } from 'antd';
+import { Flex, Form, Input, Popover, Button } from 'antd';
 
 const ElementNode = ({ id, data }) => {
 
@@ -20,6 +20,14 @@ const ElementNode = ({ id, data }) => {
       </Form.Item>
       <Form.Item label="element">
         <Input value={data.value} onChange={onChangeElementName}/>
+      </Form.Item>
+      <Form.Item style={{marginTop: 50, marginBottom: 0}}>
+        <Form.Item style={{ display: "inline-block", width: "calc(50% - 8px)"}}>
+          <Button onClick={() => data.onNodeDelete(id)}>Delete</Button>
+        </Form.Item>
+        <Form.Item style={{ display: "inline-block", width: "calc(50% - 8px)"}}>
+          <Button onClick={() => data.onNodeDelete(id)}>Delete</Button>
+        </Form.Item>
       </Form.Item>
     </Form>
   )

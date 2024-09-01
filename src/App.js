@@ -11,6 +11,7 @@ import ElementNode from "./nodes/ElementNode";
 import SpecGroupNode from "./nodes/SpecGroupNode";
 import SpecNode from "./nodes/SpecNode";
 import SpecOptionNode from "./nodes/SpecOptionNode";
+import { getAllChildElements } from "./nodeUtil";
 
 const nodeTypes = {
   element: ElementNode,
@@ -71,7 +72,7 @@ function App() {
           x: event.clientX,
           y: event.clientY,
         }),
-        data: { label: type, onNodeUpdate: onNodeUpdate },
+        data: { label: type, onNodeUpdate, onNodeDelete },
         origin: [0.5, 0.0],
       };
 
@@ -161,7 +162,7 @@ function App() {
       id: getId(),
       type: "element",
       position: screenToFlowPosition({ x: 400, y: 400 }),
-      data: { label: "Element", onNodeUpdate: onNodeUpdate }
+      data: { label: "Element", onNodeUpdate, onNodeDelete }
     }
     setNodes(nds => nds.concat(newNode));
   }, [screenToFlowPosition])
@@ -177,6 +178,15 @@ function App() {
       })
     )
   }
+
+  const onNodeDelete = useCallback(id => {
+    const targetNode = nodes.find(node => node.id === id)
+    // targetNodeの親Edgeと自身、自身以下のEdge/Nodeを全て取得
+    const { allChildNodes, allChildEdges } = getAllChildElements(targetNode, nodes, edges)
+
+    setNodes(nds => nds.filter(node => !allChildNodes.map(n => n.id).includes(node.id)))
+    setEdges(eds => eds.filter(edge => !allChildEdges.map(e => e.id).includes(edge.id)))
+  }, [nodes, edges, setNodes, setEdges])
 
   return (
     <div class="dndflow">

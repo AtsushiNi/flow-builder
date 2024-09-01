@@ -1,5 +1,5 @@
 import { Handle, Position } from "@xyflow/react";
-import { Popover, Input, Form } from "antd";
+import { Popover, Input, Form, Flex, Button } from "antd";
 
 const SpecOptionNode = ({ id, data }) => {
   const onChangeValue = event => {
@@ -11,6 +11,14 @@ const SpecOptionNode = ({ id, data }) => {
     <Form>
       <Form.Item layout="vertical" label="value">
         <Input value={data.value} onChange={onChangeValue} />
+      </Form.Item>
+      <Form.Item style={{marginTop: 50, marginBottom: 0}}>
+        <Form.Item style={{ display: "inline-block", width: "calc(50% - 8px)"}}>
+          <Button onClick={() => data.onNodeDelete(id)}>Delete</Button>
+        </Form.Item>
+        <Form.Item style={{ display: "inline-block", width: "calc(50% - 8px)"}}>
+          <Button onClick={() => data.onNodeDelete(id)}>Delete</Button>
+        </Form.Item>
       </Form.Item>
     </Form>
   )
