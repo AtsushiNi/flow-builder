@@ -36,8 +36,7 @@ function App() {
   const onConnect = useCallback(params => {
     connectingNodeId.current = null;
     setEdges(eds => addEdge(params, eds))
-  }, []
-  );
+  }, []);
 
   const onConnectStart = useCallback((_, { nodeId }) => {
     connectingNodeId.current = nodeId;
@@ -72,7 +71,7 @@ function App() {
           x: event.clientX,
           y: event.clientY,
         }),
-        data: { label: type, onNodeUpdate, onNodeDelete },
+        data: { label: type, onNodeUpdate },
         origin: [0.5, 0.0],
       };
 
@@ -162,7 +161,7 @@ function App() {
       id: getId(),
       type: "element",
       position: screenToFlowPosition({ x: 400, y: 400 }),
-      data: { label: "Element", onNodeUpdate, onNodeDelete }
+      data: { label: "Element", onNodeUpdate }
     }
     setNodes(nds => nds.concat(newNode));
   }, [screenToFlowPosition])
@@ -178,15 +177,6 @@ function App() {
       })
     )
   }
-
-  const onNodeDelete = useCallback(id => {
-    const targetNode = nodes.find(node => node.id === id)
-    // targetNodeの親Edgeと自身、自身以下のEdge/Nodeを全て取得
-    const { allChildNodes, allChildEdges } = getAllChildElements(targetNode, nodes, edges)
-
-    setNodes(nds => nds.filter(node => !allChildNodes.map(n => n.id).includes(node.id)))
-    setEdges(eds => eds.filter(edge => !allChildEdges.map(e => e.id).includes(edge.id)))
-  }, [nodes, edges, setNodes, setEdges])
 
   return (
     <div class="dndflow">

@@ -221,15 +221,6 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
     )
   }
 
-  const onNodeDelete = id => {
-    const targetNode = nodes.find(node => node.id === id)
-    // targetNodeの親Edgeと自身、自身以下のEdge/Nodeを全て取得
-    const { allChildNodes, allChildEdges } = getAllChildElements(targetNode, nodes, edges)
-
-    setNodes(nds => nds.filter(node => !allChildNodes.map(n => n.id).includes(node.id)))
-    setEdges(eds => eds.filter(edge => !allChildEdges.map(e => e.id).includes(edge.id)))
-  }
-
   // 文字列を処理してノードとエッジを生成する関数
   function parseSQLToReactFlow(sql) {
     const nodes = [];
@@ -246,7 +237,7 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
           nodes.push({
             id: matches[1],
             type: "element",
-            data: { value: matches[2], label: matches[2], onNodeUpdate, onNodeDelete },
+            data: { value: matches[2], label: matches[2], onNodeUpdate },
             position: { x: 400 * 1, y: Math.random() * 400 }, // ランダム位置
           });
         }
@@ -256,7 +247,7 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
           nodes.push({
             id: `group-${matches[1]}`,
             type: "specGroup",
-            data: { label: "Spec Group", onNodeUpdate, onNodeDelete },
+            data: { label: "Spec Group", onNodeUpdate },
             position: { x: 400 * 2, y: Math.random() * 400 }, // ランダム位置
           });
           edges.push({
@@ -271,7 +262,7 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
           nodes.push({
             id: `option-${matches[1]}`,
             type: "specOption",
-            data: { fqcn: matches[3], label: matches[3], onNodeUpdate, onNodeDelete },
+            data: { fqcn: matches[3], label: matches[3], onNodeUpdate },
             position: {
               x: 400 * 4,
               y: 100 * Number(matches[1].match(/\d+/)[0]),
@@ -290,7 +281,7 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
           nodes.push({
             id: `spec-${matches[1]}`,
             type: "spec",
-            data: { value: matches[3], label: parts[parts.length - 1], onNodeUpdate, onNodeDelete },
+            data: { value: matches[3], label: parts[parts.length - 1], onNodeUpdate },
             position: { x: 400 * 3, y: Math.random() * 400 }, // ランダム位置
           });
           edges.push({
@@ -363,7 +354,6 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
           label: elementDom.getAttribute("value"),
           value: "element",
           onNodeUpdate,
-          onNodeDelete
         },
         position: { x: 400, y: 0 }
       });
@@ -393,7 +383,6 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
               label: parts[parts.length - 1],
               fqcn,
               onNodeUpdate,
-              onNodeDelete
             },
         position: { x: 400 * 3, y: 0 }
           });
@@ -412,7 +401,6 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
                 label: value,
                 value,
                 onNodeUpdate,
-                onNodeDelete
               },
         position: { x: 400 * 4, y: 100 * optionId }
             });

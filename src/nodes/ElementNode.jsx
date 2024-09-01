@@ -1,7 +1,9 @@
-import { Handle, Position } from "@xyflow/react";
+import { Handle, Position, useReactFlow } from "@xyflow/react";
 import { Flex, Form, Input, Popover, Button } from 'antd';
 
 const ElementNode = ({ id, data }) => {
+
+  const { deleteElements } = useReactFlow();
 
   const onChangeAppName = event => {
     data.app = event.target.value
@@ -26,7 +28,7 @@ const ElementNode = ({ id, data }) => {
           <Button onClick={() => data.onNodeDelete(id)}>Delete</Button>
         </Form.Item>
         <Form.Item style={{ display: "inline-block", width: "calc(50% - 8px)"}}>
-          <Button onClick={() => data.onNodeDelete(id)}>Delete</Button>
+          <Button onClick={() => deleteElements({ nodes: [{id: id}]})}>Delete</Button>
         </Form.Item>
       </Form.Item>
     </Form>

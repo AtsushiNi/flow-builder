@@ -1,7 +1,8 @@
-import { Handle, Position } from "@xyflow/react";
+import { Handle, Position, useReactFlow } from "@xyflow/react";
 import { Popover, Input, Form, Flex, Button } from "antd";
 
 const SpecOptionNode = ({ id, data }) => {
+  const { deleteElements } = useReactFlow();
   const onChangeValue = event => {
     data.label = event.target.value
     data.value = event.target.value
@@ -14,7 +15,7 @@ const SpecOptionNode = ({ id, data }) => {
       </Form.Item>
       <Form.Item style={{marginTop: 50, marginBottom: 0}}>
         <Form.Item style={{ display: "inline-block", width: "calc(50% - 8px)"}}>
-          <Button onClick={() => data.onNodeDelete(id)}>Delete</Button>
+          <Button onClick={() => deleteElements({ nodes: [{ id: id }] })}>Delete</Button>
         </Form.Item>
         <Form.Item style={{ display: "inline-block", width: "calc(50% - 8px)"}}>
           <Button onClick={() => data.onNodeDelete(id)}>Delete</Button>
