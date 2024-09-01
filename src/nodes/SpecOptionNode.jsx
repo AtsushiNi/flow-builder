@@ -16,10 +16,6 @@ const SpecOptionNode = ({ data }) => {
         position={Position.Left}
       />
       {data.label}
-      <Handle
-        type="source"
-        position={Position.Right}
-      />
     </Popover>
   )
 }

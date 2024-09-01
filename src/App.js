@@ -190,7 +190,7 @@ function App() {
         >
           <Background />
         </ReactFlow>
-        <FloatButton onClick={addElement} type="primary" icon={<PlusOutlined />} style={{ insetInlineEnd: 300 }} />
+        <FloatButton onClick={addElement} type="primary" icon={<PlusOutlined />} style={{ insetInlineEnd: 350 }} />
       </div>
       <Sidebar nodes={nodes} setNodes={setNodes} edges={edges} setEdges={setEdges} />
     </div>

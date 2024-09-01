@@ -1,7 +1,8 @@
 import React, { useCallback, useRef, useState } from "react";
 import { useDnD } from "./DnDContext";
-import { Button, Upload } from "antd";
+import { Button, Flex, Upload } from "antd";
 import { DownloadOutlined, UploadOutlined } from "@ant-design/icons";
+import { getChildren } from "./nodeUtil";
 
 const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
   const [_, setType] = useDnD();
@@ -47,15 +48,25 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
     [selectedNode, setNodes]
   );
 
-  const handleBeforeUpload = file => {
+  const handleBeforeUpload = (file) => {
     setFile(file);
     return false;
-  }
+  };
   const handleFileChange = () => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const content = event.target?.result;
       const { nodes, edges } = parseSQLToReactFlow(content);
+      updateNodes(nodes, edges);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleXMLFileChange = () => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result;
+      const { nodes, edges } = parseXMLToReactFlow(content);
       updateNodes(nodes, edges);
     };
     reader.readAsText(file);
@@ -158,7 +169,43 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
     const url = URL.createObjectURL(blob);
     const link = anchorRef.current;
     link.setAttribute("href", url);
-    link.setAttribute("download", "insert.sql");
+    link.setAttribute("download", "acl.sql");
+    link.click();
+  };
+
+  const onClickXMLOutput = () => {
+    const xmlDoc = document.implementation.createDocument("", "", null);
+    const rootDom = xmlDoc.createElement("root");
+    const elementNodes = nodes.filter((node) => node.type === "element");
+
+    elementNodes.forEach((element) => {
+      const elementDom = xmlDoc.createElement("element");
+      elementDom.setAttribute("value", element.data.value);
+      getChildren(element, nodes, edges).forEach((group) => {
+        const groupDom = xmlDoc.createElement("specGroup");
+        getChildren(group, nodes, edges).forEach((spec) => {
+          const specDom = xmlDoc.createElement("spec");
+          specDom.setAttribute("fqcn", spec.data.fqcn);
+          getChildren(spec, nodes, edges).forEach((option) => {
+            const optionDom = xmlDoc.createElement("specOption");
+            optionDom.setAttribute("value", group.data.value);
+            specDom.appendChild(optionDom);
+          });
+          groupDom.appendChild(specDom);
+        });
+        elementDom.appendChild(groupDom);
+      });
+      rootDom.appendChild(elementDom);
+    });
+    xmlDoc.appendChild(rootDom);
+
+    const serializer = new XMLSerializer();
+    const xmlText = serializer.serializeToString(xmlDoc);
+    const blob = new Blob([xmlText], { type: "application/xml" });
+    const url = URL.createObjectURL(blob);
+    const link = anchorRef.current;
+    link.setAttribute("href", url);
+    link.setAttribute("download", "acl.xml");
     link.click();
   };
 
@@ -275,15 +322,113 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
     return { nodes, edges };
   }
 
+  // XML文字列を処理してノードとエッジを生成する関数
+  const parseXMLToReactFlow = (xml) => {
+    const parser = new DOMParser();
+    const xmlDom = parser.parseFromString(xml, "application/xml");
+    let nodeId = 1;
+    let edgeId = 1;
+    const getNodeId = () => `${nodeId++}`;
+    const getEdgeId = () => `${edgeId++}`;
+    const nodes = [];
+    const edges = [];
+    const rootDom = xmlDom.getElementsByTagName("root")[0]
+    Array.from(rootDom.getElementsByTagName("element")).forEach((elementDom) => {
+      const elementId = getNodeId();
+      nodes.push({
+        id: elementId,
+        type: "element",
+        data: {
+          label: elementDom.getAttribute("value"),
+          value: "element"
+        },
+        position: { x: 400, y: 0 }
+      });
+      Array.from(elementDom.getElementsByTagName("specGroup")).forEach((groupDom) => {
+        const groupId = getNodeId();
+        nodes.push({
+          id: groupId,
+          type: "specGroup",
+          data: {
+            label: "specGroup",
+          },
+        position: { x: 400 * 2, y: 0 }
+        });
+        edges.push({
+          id: getEdgeId(),
+          source: elementId,
+          target: groupId,
+        });
+        Array.from(groupDom.getElementsByTagName("spec")).forEach((specDom) => {
+          const specId = getNodeId();
+          const fqcn = specDom.getAttribute("fqcn");
+          const parts = fqcn.split(".");
+          nodes.push({
+            id: specId,
+            type: "spec",
+            data: {
+              label: parts[parts.length - 1],
+              fqcn,
+            },
+        position: { x: 400 * 3, y: 0 }
+          });
+          edges.push({
+            id: getEdgeId(),
+            source: groupId,
+            target: specId,
+          });
+          Array.from(specDom.getElementsByTagName("specOption")).forEach((optionDom) => {
+            const optionId = getNodeId();
+            const value = optionDom.getAttribute("value");
+            nodes.push({
+              id: optionId,
+              type: "specOption",
+              data: {
+                label: value,
+                value,
+              },
+        position: { x: 400 * 4, y: 100 * optionId }
+            });
+            edges.push({
+              id: getEdgeId(),
+              source: specId,
+              target: optionId,
+            });
+          });
+        });
+      });
+    });
+    return { nodes, edges };
+  };
+
   return (
     <aside>
-      <div style={{ marginBottom: 10 }}>
-        {/* <Upload maxCount={1} onChange={handleFileChange}> */}
-        <Upload maxCount={1} onChange={handleFileChange} beforeUpload={handleBeforeUpload}>
-            <Button icon={<UploadOutlined />}>Upload Data</Button>
+      <Flex style={{ marginBottom: 10 }}>
+        <Upload
+          maxCount={1}
+          onChange={handleFileChange}
+          beforeUpload={handleBeforeUpload}
+        >
+          <Button icon={<UploadOutlined />}>Upload SQL</Button>
         </Upload>
-      </div>
-      <Button icon={<DownloadOutlined/>}>Output Data</Button>
+        <Upload
+          maxCount={1}
+          onChange={handleXMLFileChange}
+          beforeUpload={handleBeforeUpload}
+        >
+          <Button icon={<UploadOutlined />}>Upload XML</Button>
+        </Upload>
+      </Flex>
+
+      <Flex>
+        <Button onClick={onClickOutput} icon={<DownloadOutlined />}>
+          Output SQL
+        </Button>
+        <Button onClick={onClickXMLOutput} icon={<DownloadOutlined />}>
+          Output XML
+        </Button>
+      </Flex>
+      <a ref={anchorRef}></a>
       {/* <div
         className="dndnode element"
         onDragStart={(event) => onDragStart(event, "element")}
