@@ -188,7 +188,7 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
           specDom.setAttribute("fqcn", spec.data.fqcn);
           getChildren(spec, nodes, edges).forEach((option) => {
             const optionDom = xmlDoc.createElement("specOption");
-            optionDom.setAttribute("value", group.data.value);
+            optionDom.setAttribute("value", option.data.value);
             specDom.appendChild(optionDom);
           });
           groupDom.appendChild(specDom);
@@ -209,6 +209,18 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
     link.click();
   };
 
+  const onNodeUpdate = (id, data) => {
+    setNodes(nds =>
+      nds.map(node => {
+        if (node.id === id) {
+          return {...node, data};
+        } else {
+          return node;
+        }
+      })
+    )
+  }
+
   // 文字列を処理してノードとエッジを生成する関数
   function parseSQLToReactFlow(sql) {
     const nodes = [];
@@ -225,7 +237,7 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
           nodes.push({
             id: matches[1],
             type: "element",
-            data: { value: matches[2], label: matches[2] },
+            data: { value: matches[2], label: matches[2], onNodeUpdate },
             position: { x: 400 * 1, y: Math.random() * 400 }, // ランダム位置
           });
         }
@@ -235,7 +247,7 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
           nodes.push({
             id: `group-${matches[1]}`,
             type: "specGroup",
-            data: { value: matches[2], label: "Spec Group" },
+            data: { label: "Spec Group", onNodeUpdate },
             position: { x: 400 * 2, y: Math.random() * 400 }, // ランダム位置
           });
           edges.push({
@@ -250,7 +262,7 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
           nodes.push({
             id: `option-${matches[1]}`,
             type: "specOption",
-            data: { value: matches[3], label: matches[3] },
+            data: { fqcn: matches[3], label: matches[3], onNodeUpdate },
             position: {
               x: 400 * 4,
               y: 100 * Number(matches[1].match(/\d+/)[0]),
@@ -269,7 +281,7 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
           nodes.push({
             id: `spec-${matches[1]}`,
             type: "spec",
-            data: { value: matches[3], label: parts[parts.length - 1] },
+            data: { value: matches[3], label: parts[parts.length - 1], onNodeUpdate },
             position: { x: 400 * 3, y: Math.random() * 400 }, // ランダム位置
           });
           edges.push({
@@ -340,7 +352,8 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
         type: "element",
         data: {
           label: elementDom.getAttribute("value"),
-          value: "element"
+          value: "element",
+          onNodeUpdate: onNodeUpdate
         },
         position: { x: 400, y: 0 }
       });
@@ -369,6 +382,7 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
             data: {
               label: parts[parts.length - 1],
               fqcn,
+              onNodeUpdate: onNodeUpdate
             },
         position: { x: 400 * 3, y: 0 }
           });
@@ -386,6 +400,7 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
               data: {
                 label: value,
                 value,
+                onNodeUpdate: onNodeUpdate
               },
         position: { x: 400 * 4, y: 100 * optionId }
             });

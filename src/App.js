@@ -71,7 +71,7 @@ function App() {
           x: event.clientX,
           y: event.clientY,
         }),
-        data: { label: type },
+        data: { label: type, onNodeUpdate: onNodeUpdate },
         origin: [0.5, 0.0],
       };
 
@@ -161,10 +161,22 @@ function App() {
       id: getId(),
       type: "element",
       position: screenToFlowPosition({ x: 400, y: 400 }),
-      data: { label: "Element" }
+      data: { label: "Element", onNodeUpdate: onNodeUpdate }
     }
     setNodes(nds => nds.concat(newNode));
   }, [screenToFlowPosition])
+
+  const onNodeUpdate = (id, data) => {
+    setNodes(nds =>
+      nds.map(node => {
+        if (node.id === id) {
+          return {...node, data};
+        } else {
+          return node;
+        }
+      })
+    )
+  }
 
   return (
     <div class="dndflow">

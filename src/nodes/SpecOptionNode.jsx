@@ -1,11 +1,16 @@
 import { Handle, Position } from "@xyflow/react";
 import { Popover, Input, Form } from "antd";
 
-const SpecOptionNode = ({ data }) => {
+const SpecOptionNode = ({ id, data }) => {
+  const onChangeValue = event => {
+    data.label = event.target.value
+    data.value = event.target.value
+    data.onNodeUpdate(id, data)
+  }
   const popover = (
     <Form>
       <Form.Item layout="vertical" label="value">
-        <Input/>
+        <Input value={data.value} onChange={onChangeValue} />
       </Form.Item>
     </Form>
   )
