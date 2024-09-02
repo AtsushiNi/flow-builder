@@ -1,6 +1,6 @@
-import { Background, Position, ReactFlow, ReactFlowProvider, addEdge, reconnectEdge, useEdgesState, useNodesState, useReactFlow, Handle, NodeToolbar } from '@xyflow/react';
+import { Background, Position, ReactFlow, ReactFlowProvider, addEdge, reconnectEdge, useEdgesState, useNodesState, useReactFlow, Handle, NodeToolbar, MiniMap } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import './App.css';
 import { DnDProvider, useDnD } from './DnDContext';
@@ -11,7 +11,7 @@ import ElementNode from "./nodes/ElementNode";
 import SpecGroupNode from "./nodes/SpecGroupNode";
 import SpecNode from "./nodes/SpecNode";
 import SpecOptionNode from "./nodes/SpecOptionNode";
-import { getAllChildElements } from "./nodeUtil";
+import { getChildren, getAllChildElements } from "./nodeUtil";
 
 const nodeTypes = {
   element: ElementNode,
@@ -22,16 +22,53 @@ const nodeTypes = {
 
 let id = 0;
 const getId = () => `dndnode_${id++}`;
+let edgeId = 0;
+const getEdgeId = () => `copyedge_${edgeId++}`
 
 function App() {
-  const reactFlowWrapper = useRef(null);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [copyingNodeId, setCopyingNodeId] = useState(null);
   const { screenToFlowPosition } = useReactFlow();
   const [type, setType] = useDnD();
+  const reactFlowWrapper = useRef(null);
   const connectingNodeId = useRef(null);
   const connectingNodeType = useRef(null);
   const edgeReconnectSuccessful = useRef(true);
+
+  useEffect(() => {
+    if (copyingNodeId === null) return
+
+    const targetNode = nodes.find(node => node.id === copyingNodeId)
+    const { allChildNodes, allChildEdges } = getAllChildElements(targetNode, nodes, edges);
+    const newNodes = JSON.parse(JSON.stringify(allChildNodes))
+    newNodes.forEach(node => {
+      node.data.onNodeUpdate = onNodeUpdate
+      node.data.onNodeCopy = onNodeCopy
+    })
+    const newEdges = JSON.parse(JSON.stringify(allChildEdges))
+    // idを振る
+    newNodes.forEach(node => {
+      const sourceEdges = newEdges.filter(edge => edge.source === node.id)
+      const targetEdges = newEdges.filter(edge => edge.target === node.id)
+      node.id = getId();
+      sourceEdges.forEach(edge => edge.source = node.id)
+      targetEdges.forEach(edge => edge.target = node.id)
+    })
+    newEdges.forEach(edge => {
+      edge.id = getEdgeId();
+    })
+    // 位置をずらす
+    newNodes.forEach(node => {
+      node.position.x += 200;
+      node.position.y += 200;
+    })
+
+    setNodes(nds => nds.concat(newNodes))
+    setEdges(eds => eds.concat(newEdges))
+
+    setCopyingNodeId(null);
+  }, [copyingNodeId])
 
   const onConnect = useCallback(params => {
     connectingNodeId.current = null;
@@ -71,7 +108,7 @@ function App() {
           x: event.clientX,
           y: event.clientY,
         }),
-        data: { label: type, onNodeUpdate },
+        data: { label: type, onNodeUpdate, onNodeCopy },
         origin: [0.5, 0.0],
       };
 
@@ -99,9 +136,37 @@ function App() {
     edgeReconnectSuccessful.current = true;
   }, [])
 
-  const onNodeClick = useCallback((event, node) => {
-    console.log(node.data)
-  }, [])
+  const onNodeClick = useCallback((event, targetNode) => {
+    const childNodes = getChildren(targetNode, nodes, edges)
+    const hideNodeIds = []
+    const hideEdgeIds = []
+    childNodes.forEach(node => {
+      const {allChildNodes, allChildEdges} = getAllChildElements(node, nodes, edges)
+      hideNodeIds.push(...allChildNodes.map(n => n.id))
+      hideEdgeIds.push(...allChildEdges.map(e => e.id))
+    })
+
+    // トグル
+    const collapse = targetNode.data.collapsed ? !targetNode.data.collapsed : true
+
+    setNodes(nds => nds.map(node => {
+      if (targetNode.id === node.id) {
+        return {...node, data: {...node.data, collapsed: collapse}}
+      }
+      if (hideNodeIds.includes(node.id)) {
+        return {...node, hidden: collapse}
+      } else {
+        return node
+      }
+    }));
+    setEdges(eds => eds.map(edge => {
+      if (hideEdgeIds.includes(edge.id)) {
+        return {...edge, hidden: collapse}
+      } else {
+        return edge
+      }
+    }))
+  }, [nodes, edges])
 
   const onNodeMouseEnter = useCallback((_, node) => {
     setNodes(nds => nds.map(n =>
@@ -161,7 +226,7 @@ function App() {
       id: getId(),
       type: "element",
       position: screenToFlowPosition({ x: 400, y: 400 }),
-      data: { label: "Element", onNodeUpdate }
+      data: { label: "Element", onNodeUpdate, onNodeCopy }
     }
     setNodes(nds => nds.concat(newNode));
   }, [screenToFlowPosition])
@@ -170,12 +235,16 @@ function App() {
     setNodes(nds =>
       nds.map(node => {
         if (node.id === id) {
-          return {...node, data};
+          return { ...node, data };
         } else {
           return node;
         }
       })
     )
+  }
+
+  const onNodeCopy = (id) => {
+    setCopyingNodeId(id);
   }
 
   return (
@@ -203,6 +272,7 @@ function App() {
           <Background />
         </ReactFlow>
         <FloatButton onClick={addElement} type="primary" icon={<PlusOutlined />} style={{ insetInlineEnd: 350 }} />
+        <MiniMap/>
       </div>
       <Sidebar nodes={nodes} setNodes={setNodes} edges={edges} setEdges={setEdges} />
     </div>

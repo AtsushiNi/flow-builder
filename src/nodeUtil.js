@@ -14,14 +14,16 @@ const deleteTree = (targetNode, nodes, edges) => {
 const getAllChildElements = (targetNode, nodes, edges) => {
     const allChildNodes = []
     const allChildEdges = []
-    targetNode.getChildren().forEach(node => {
-        const { allChildNodes: childNodes, childEdges } = getAllChildElements(node, nodes, edges);
-        allChildNodes.concat(childNodes);
-        allChildEdges.concat(childEdges);
+    getChildren(targetNode, nodes, edges).forEach(node => {
+        const { allChildNodes: childNodes, allChildEdges: childEdges } = getAllChildElements(node, nodes, edges);
+        allChildNodes.push(...childNodes)
+        allChildEdges.push(...childEdges)
     })
     allChildNodes.push(targetNode)
     const parentEdge = edges.find(edge => edge.target === targetNode.id)
-    allChildEdges.push(parentEdge)
+    if(parentEdge) {
+        allChildEdges.push(parentEdge)
+    }
     return { allChildNodes, allChildEdges }
 }
 

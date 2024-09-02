@@ -1,8 +1,22 @@
 import { Handle, Position, useReactFlow } from "@xyflow/react";
 import { Popover, Form, Flex, Button } from 'antd';
+import styled from 'styled-components';
+
+const Node = styled.div`
+  color: ${(props) => props.collapsed ? "gray": "#1a192b"};
+  border: var(--xy-node-border, var(--xy-node-border-default));
+  border-color: ${(props) => props.collapsed ? "gray": "#1a192b"};
+  .react-flow__handle {
+    background-color: ${(props) => props.collapsed ? "gray": "#1a192b"};
+  }
+`
 
 const SpecGroupNode = ({ id, data }) => {
   const { deleteElements } = useReactFlow();
+
+  const onCopyClick = () => {
+    data.onNodeCopy(id)
+  }
 
   const popover = (
     <Form>
@@ -11,23 +25,25 @@ const SpecGroupNode = ({ id, data }) => {
           <Button onClick={() => deleteElements({ nodes: [{ id: id }] })}>Delete</Button>
         </Form.Item>
         <Form.Item style={{ display: "inline-block", width: "calc(50% - 8px)"}}>
-          <Button onClick={() => data.onNodeDelete(id)}>Delete</Button>
+          <Button onClick={onCopyClick}>Copy</Button>
         </Form.Item>
       </Form.Item>
     </Form>
   )
   return (
-    <Popover content={popover}>
-      <Handle
-        type="target"
-        position={Position.Left}
-      />
-      {data.label}
-      <Handle
-        type="source"
-        position={Position.Right}
-      />
-    </Popover>
+    <Node collapsed={data.collapsed} className="node">
+      <Popover content={popover}>
+        <Handle
+          type="target"
+          position={Position.Left}
+        />
+        {data.label}
+        <Handle
+          type="source"
+          position={Position.Right}
+        />
+      </Popover>
+    </Node>
   )
 }
 
