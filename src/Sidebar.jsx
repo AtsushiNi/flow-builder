@@ -100,7 +100,7 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges, onNodeCopy }) => {
           specs.push({
             id: specs.length + 1,
             specGroupId: specGroups.length,
-            fqcn: specNode.data.value,
+            fqcn: specNode.data.fqcn,
           });
           const specOptionNodeIds = edges
             .filter((edge) => edge.source == specNode.id)
