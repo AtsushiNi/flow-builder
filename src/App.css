@@ -28,12 +28,6 @@
 .dndflow .react-flow__node-element {
   border-color: #1a192b;
 }
-.dndflow .react-flow__node-specGroup {
-  border-color: #0041d0;
-}
-.dndflow .react-flow__node-spec {
-  border-color: #ff0072;
-}
 .dndflow .react-flow__node-specOption {
   border-color: #00ff33;
 }

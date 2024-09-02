@@ -5,9 +5,9 @@ import styled from 'styled-components';
 const Node = styled.div`
   color: ${(props) => props.collapsed ? "gray": "#1a192b"};
   border: var(--xy-node-border, var(--xy-node-border-default));
-  border-color: ${(props) => props.collapsed ? "gray": "#1a192b"};
+  border-color: ${(props) => props.collapsed ? "gray": "#0041d0"};
   .react-flow__handle {
-    background-color: ${(props) => props.collapsed ? "gray": "#1a192b"};
+    background-color: ${(props) => props.collapsed ? "gray": "#0041d0"};
   }
 `
 
@@ -31,7 +31,7 @@ const SpecGroupNode = ({ id, data }) => {
     </Form>
   )
   return (
-    <Node collapsed={data.collapsed} className="node">
+    <Node collapsed={data.collapsed} className="node spec-group">
       <Popover content={popover}>
         <Handle
           type="target"

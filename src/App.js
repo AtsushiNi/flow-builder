@@ -274,7 +274,7 @@ function App() {
         <FloatButton onClick={addElement} type="primary" icon={<PlusOutlined />} style={{ insetInlineEnd: 350 }} />
         <MiniMap/>
       </div>
-      <Sidebar nodes={nodes} setNodes={setNodes} edges={edges} setEdges={setEdges} />
+      <Sidebar nodes={nodes} setNodes={setNodes} edges={edges} setEdges={setEdges} onNodeCopy={onNodeCopy}/>
     </div>
   );
 }

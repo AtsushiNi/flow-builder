@@ -4,7 +4,7 @@ import { Button, Flex, Upload } from "antd";
 import { DownloadOutlined, UploadOutlined } from "@ant-design/icons";
 import { getChildren, getAllChildElements } from "./nodeUtil";
 
-const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
+const Sidebar = ({ nodes, setNodes, edges, setEdges, onNodeCopy }) => {
   const [_, setType] = useDnD();
   const anchorRef = useRef(null);
   const [file, setFile] = useState(null);
@@ -210,16 +210,16 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
   };
 
   const onNodeUpdate = (id, data) => {
-    setNodes(nds =>
-      nds.map(node => {
+    setNodes((nds) =>
+      nds.map((node) => {
         if (node.id === id) {
-          return {...node, data};
+          return { ...node, data };
         } else {
           return node;
         }
       })
-    )
-  }
+    );
+  };
 
   // 文字列を処理してノードとエッジを生成する関数
   function parseSQLToReactFlow(sql) {
@@ -237,7 +237,7 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
           nodes.push({
             id: matches[1],
             type: "element",
-            data: { value: matches[2], label: matches[2], onNodeUpdate },
+            data: { value: matches[2], label: matches[2], onNodeUpdate, onNodeCopy },
             position: { x: 400 * 1, y: Math.random() * 400 }, // ランダム位置
           });
         }
@@ -247,7 +247,7 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
           nodes.push({
             id: `group-${matches[1]}`,
             type: "specGroup",
-            data: { label: "Spec Group", onNodeUpdate },
+            data: { label: "Spec Group", onNodeUpdate, onNodeCopy },
             position: { x: 400 * 2, y: Math.random() * 400 }, // ランダム位置
           });
           edges.push({
@@ -262,7 +262,7 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
           nodes.push({
             id: `option-${matches[1]}`,
             type: "specOption",
-            data: { fqcn: matches[3], label: matches[3], onNodeUpdate },
+            data: { fqcn: matches[3], label: matches[3], onNodeUpdate, onNodeCopy },
             position: {
               x: 400 * 4,
               y: 100 * Number(matches[1].match(/\d+/)[0]),
@@ -281,7 +281,12 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
           nodes.push({
             id: `spec-${matches[1]}`,
             type: "spec",
-            data: { value: matches[3], label: parts[parts.length - 1], onNodeUpdate },
+            data: {
+              value: matches[3],
+              label: parts[parts.length - 1],
+              onNodeUpdate,
+              onNodeCopy,
+            },
             position: { x: 400 * 3, y: Math.random() * 400 }, // ランダム位置
           });
           edges.push({
@@ -344,75 +349,109 @@ const Sidebar = ({ nodes, setNodes, edges, setEdges }) => {
     const getEdgeId = () => `${edgeId++}`;
     const nodes = [];
     const edges = [];
-    const rootDom = xmlDom.getElementsByTagName("root")[0]
-    Array.from(rootDom.getElementsByTagName("element")).forEach((elementDom) => {
-      const elementId = getNodeId();
-      nodes.push({
-        id: elementId,
-        type: "element",
-        data: {
-          label: elementDom.getAttribute("value"),
-          value: "element",
-          onNodeUpdate,
-        },
-        position: { x: 400, y: 0 }
-      });
-      Array.from(elementDom.getElementsByTagName("specGroup")).forEach((groupDom) => {
-        const groupId = getNodeId();
+    const rootDom = xmlDom.getElementsByTagName("root")[0];
+    Array.from(rootDom.getElementsByTagName("element")).forEach(
+      (elementDom) => {
+        const elementId = getNodeId();
         nodes.push({
-          id: groupId,
-          type: "specGroup",
+          id: elementId,
+          type: "element",
           data: {
-            label: "specGroup",
+            label: elementDom.getAttribute("value"),
+            value: "element",
+            onNodeUpdate,
+            onNodeCopy,
           },
-        position: { x: 400 * 2, y: 0 }
+          position: { x: 400, y: 0 },
         });
-        edges.push({
-          id: getEdgeId(),
-          source: elementId,
-          target: groupId,
-        });
-        Array.from(groupDom.getElementsByTagName("spec")).forEach((specDom) => {
-          const specId = getNodeId();
-          const fqcn = specDom.getAttribute("fqcn");
-          const parts = fqcn.split(".");
-          nodes.push({
-            id: specId,
-            type: "spec",
-            data: {
-              label: parts[parts.length - 1],
-              fqcn,
-              onNodeUpdate,
-            },
-        position: { x: 400 * 3, y: 0 }
-          });
-          edges.push({
-            id: getEdgeId(),
-            source: groupId,
-            target: specId,
-          });
-          Array.from(specDom.getElementsByTagName("specOption")).forEach((optionDom) => {
-            const optionId = getNodeId();
-            const value = optionDom.getAttribute("value");
+        Array.from(elementDom.getElementsByTagName("specGroup")).forEach(
+          (groupDom) => {
+            const groupId = getNodeId();
             nodes.push({
-              id: optionId,
-              type: "specOption",
+              id: groupId,
+              type: "specGroup",
               data: {
-                label: value,
-                value,
-                onNodeUpdate,
+                label: "specGroup",
+                onNodeCopy,
               },
-        position: { x: 400 * 4, y: 100 * optionId }
+              position: { x: 400 * 2, y: 0 },
             });
             edges.push({
               id: getEdgeId(),
-              source: specId,
-              target: optionId,
+              source: elementId,
+              target: groupId,
             });
-          });
-        });
-      });
-    });
+            Array.from(groupDom.getElementsByTagName("spec")).forEach(
+              (specDom) => {
+                const specId = getNodeId();
+                const fqcn = specDom.getAttribute("fqcn");
+                const parts = fqcn.split(".");
+                nodes.push({
+                  id: specId,
+                  type: "spec",
+                  data: {
+                    label: parts[parts.length - 1],
+                    fqcn,
+                    onNodeUpdate,
+                    onNodeCopy,
+                  },
+                  position: { x: 400 * 3, y: 0 },
+                });
+                edges.push({
+                  id: getEdgeId(),
+                  source: groupId,
+                  target: specId,
+                });
+                Array.from(specDom.getElementsByTagName("specOption")).forEach(
+                  (optionDom) => {
+                    const optionId = getNodeId();
+                    const value = optionDom.getAttribute("value");
+                    nodes.push({
+                      id: optionId,
+                      type: "specOption",
+                      data: {
+                        label: value,
+                        value,
+                        onNodeUpdate,
+                        onNodeCopy,
+                      },
+                      position: { x: 400 * 4, y: 100 * optionId },
+                    });
+                    edges.push({
+                      id: getEdgeId(),
+                      source: specId,
+                      target: optionId,
+                    });
+                  }
+                );
+              }
+            );
+          }
+        );
+      }
+    );
+
+    // 高さ調整
+    const options = nodes.filter(node => node.type === "specOption")
+    options.forEach((node , index) => {
+      node.position.y = 100 * index;
+    })
+    const specs = nodes.filter(node => node.type === "spec")
+    specs.forEach(node => {
+      const childIds = edges.filter(edge => edge.source === node.id).map(edge => edge.target)
+      node.position.y = Math.min(...nodes.filter(node => childIds.includes(node.id)).map(node => node.position.y))
+    })
+    const groups = nodes.filter(node => node.type === "specGroup")
+    groups.forEach(node => {
+      const childIds = edges.filter(edge => edge.source === node.id).map(edge => edge.target)
+      node.position.y = Math.min(...nodes.filter(node => childIds.includes(node.id)).map(node => node.position.y))
+    })
+    const elements = nodes.filter(node => node.type === "element")
+    elements.forEach(node => {
+      const childIds = edges.filter(edge => edge.source === node.id).map(edge => edge.target)
+      node.position.y = Math.min(...nodes.filter(node => childIds.includes(node.id)).map(node => node.position.y))
+    })
+
     return { nodes, edges };
   };
 

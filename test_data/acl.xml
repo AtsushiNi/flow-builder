@@ -1,0 +1,67 @@
+<root>
+    <element value="element">
+        <specGroup>
+            <spec fqcn="jp.demo.atsushi.TestSpec">
+                <specOption value="1" />
+                <specOption value="2" />
+            </spec>
+        </specGroup>
+    </element>
+    <element value="EDIT_REPORT">
+        <specGroup>
+            <spec fqcn="jp.demo.atsushi.TestSpec">
+                <specOption value="1" />
+                <specOption value="2" />
+            </spec>
+            <spec fqcn="jp.demo.atsushi.HugaSpec">
+                <specOption value="1" />
+                <specOption value="2" />
+            </spec>
+        </specGroup>
+        <specGroup>
+            <spec fqcn="jp.demo.atsushi.FogeSpec">
+                <specOption value="4" />
+            </spec>
+        </specGroup>
+    </element>
+    <element value="CANCEL_REPORT">
+        <specGroup>
+            <spec fqcn="jp.demo.atsushi.TestSpec">
+                <specOption value="1" />
+                <specOption value="2" />
+            </spec>
+            <spec fqcn="jp.demo.atsushi.DemoSpec">
+                <specOption value="10" />
+                <specOption value="20" />
+                <specOption value="30" />
+                <specOption value="40" />
+                <specOption value="50" />
+            </spec>
+            <spec fqcn="jp.demo.atsushi.TempSpec">
+                <specOption value="1" />
+                <specOption value="2" />
+            </spec>
+            <spec fqcn="jp.demo.atsushi.HugaSpec">
+                <specOption value="1" />
+                <specOption value="2" />
+            </spec>
+            <spec fqcn="jp.demo.atsushi.SuperSpec">
+                <specOption value="1" />
+                <specOption value="2" />
+            </spec>
+        </specGroup>
+        <specGroup>
+            <spec fqcn="jp.demo.atsushi.FogeSpec">
+                <specOption value="4" />
+            </spec>
+        </specGroup>
+    </element>
+    <element value="APPROVE_REPORT">
+        <specGroup>
+            <spec fqcn="jp.demo.atsushi.TestSpec">
+                <specOption value="1" />
+                <specOption value="2" />
+            </spec>
+        </specGroup>
+    </element>
+</root>
